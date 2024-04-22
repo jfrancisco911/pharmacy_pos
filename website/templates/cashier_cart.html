@@ -1,0 +1,214 @@
+{% extends 'admin_base.html' %}
+{% include 'cashier_header.html' %}
+
+{% block title %}Cart Checkout{% endblock %}
+
+{% block body %}
+<style>
+    .small-input {
+    width: 70px; /* Adjust as needed */
+    height: 30px; /* Adjust as needed */
+    font-size: 14px; /* Adjust as needed */
+}
+</style>
+<div class="content">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success alert-dismissable" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="close">
+                    <span aria-hidden="true">x</span>
+                </button>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="form-group">
+        <form id="orderForm" action="{{ url_for('create_order') }}" method="POST">
+            <select class="form-control select2" id="customer" name="customer_id" required>
+                <option value="">Select a customer...</option>
+                {% for customer in customers %}
+                <option value="{{ customer.id }}">{{ customer.firstname }} {{ customer.lastname }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <table class="table table-sm" id="cartTable">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                        <th class="text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart_items %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>
+                            <input type="number" class="form-control quantity-input small-input" required="required" min="1" value="{{ item.quantity }}" data-price="{{ item.price }}" data-row-id="{{ item.id }}">
+                        </td>
+                        <td>{{ item.price }}</td>
+                        <td class="item-total">{{ item.quantity * item.price }}</td>
+                        <td class="text-right">
+                            <input type="hidden" name="item_id" value="{{ item.item_id }}">
+                            <a href="{{ url_for('deleteToCart', item_id=item.item_id) }}" class="btn btn-danger btn-xs remove-btn btn-sm">
+                                <i class="fa-solid fa-xmark"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr id="totalPriceRow">
+                        <td colspan="2"></td>
+                        <td><strong>Total Price:</strong></td>
+                        <td id="totalPrice"><strong>{{ total_price }}</strong></td>
+                        <td class="text-right">
+                            <button type="button" id="checkoutButton" class="btn btn-success" onclick="checkout()" disabled>Checkout</button>
+                        </td>
+                        <!-- Confirmation Modal -->
+                        <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="confirmationModalLabel">Confirm Order Details</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body" id="confirmationDetails">
+                                        <!-- Confirmation details will be displayed here -->
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-success" id="confirmOrderBtn">Confirm</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                            // Function to enable/disable the Checkout button based on customer selection and cart items
+                            function updateCheckoutButton() {
+                                var customerSelect = document.getElementById('customer');
+                                var cartBody = document.getElementById('cartTable').querySelector('tbody');
+                                var checkoutButton = document.getElementById('checkoutButton');
+                                
+                                // Check if a customer is selected and the cart has items
+                                if (customerSelect.value !== "" && cartBody.children.length > 0) {
+                                    checkoutButton.disabled = false; // Enable the button
+                                } else {
+                                    checkoutButton.disabled = true; // Disable the button
+                                }
+                            }
+                        
+                            // Call the function initially
+                            updateCheckoutButton();
+                        
+                            // Add event listeners to the customer select and cart body to check the availability on change
+                            document.getElementById('customer').addEventListener('change', updateCheckoutButton);
+                            document.getElementById('cartTable').querySelector('tbody').addEventListener('change', updateCheckoutButton);
+                        </script>
+
+                        <script>
+                            function checkout() {
+                                // Get customer name
+                                var customerName = document.getElementById('customer').selectedOptions[0].text;
+
+                                // Get items to be ordered, quantity, and total amount
+                                var items = [];
+                                var totalOrderAmount = 0;
+                                var itemRows = document.querySelectorAll('#cartTable tbody tr');
+                                itemRows.forEach(function(row) {
+                                    var itemName = row.cells[0].textContent;
+                                    var itemQuantity = row.cells[1].querySelector('input').value;
+                                    var itemPrice = row.cells[2].textContent;
+                                    var itemTotal = row.cells[3].textContent;
+                                    items.push({ name: itemName, quantity: itemQuantity, price: itemPrice, total: itemTotal });
+                                    totalOrderAmount += parseFloat(itemTotal);
+                                });
+
+                                // Create modal content
+                                var modalContent = '<p><strong>Customer Name:</strong> ' + customerName + '</p>';
+                                modalContent += '<table class="table">';
+                                modalContent += '<thead><tr><th>Item</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead>';
+                                modalContent += '<tbody>';
+                                items.forEach(function(item) {
+                                    modalContent += '<tr><td>' + item.name + '</td><td>' + item.quantity + '</td><td>' + item.price + '</td><td>' + item.total + '</td></tr>';
+                                });
+                                modalContent += '</tbody>';
+                                modalContent += '</table>';
+                                modalContent += '<p><strong>Total Order Amount:</strong> ' + totalOrderAmount.toFixed(2) + '</p>';
+
+                                // Display confirmation modal
+                                document.getElementById('confirmationDetails').innerHTML = modalContent;
+                                $('#confirmationModal').modal('show');
+                            }
+
+                            // Add event listener to the "Confirm" button
+                            document.getElementById('confirmOrderBtn').addEventListener('click', function() {
+                                // Perform any necessary actions for confirmation here
+                                // For example, you can submit the form
+                                document.getElementById('orderForm').submit();
+                            });
+                        </script>
+                    </tr>
+                </tfoot>
+            </table>
+        </form>
+    </div> 
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    var quantityInputs = document.querySelectorAll('.quantity-input');
+    var totalPriceElement = document.getElementById('totalPrice');
+
+    function updateTotalPrice() {
+        var total = 0;
+        quantityInputs.forEach(function(input) {
+            var quantity = parseInt(input.value);
+            var price = parseFloat(input.dataset.price);
+            var itemTotalElement = input.closest('tr').querySelector('.item-total');
+
+            if (!isNaN(quantity) && !isNaN(price)) {
+                var itemTotal = quantity * price;
+                total += itemTotal;
+                itemTotalElement.textContent = itemTotal.toFixed(2);
+
+                // Update the quantity of the item in the cart
+                var itemId = input.dataset.rowId; // Assuming you have a data attribute for the item ID
+                updateCartItemQuantity(itemId, quantity);
+            }
+        });
+
+        if (!isNaN(total)) {
+            totalPriceElement.textContent = total.toFixed(2);
+        }
+    }
+
+    function updateCartItemQuantity(itemId, quantity) {
+        // Iterate through the cart items and update the quantity of the item with the specified ID
+        for (var i = 0; i < session['cart'].length; i++) {
+            if (session['cart'][i].item_id == itemId) {
+                session['cart'][i].quantity = quantity;
+                break;
+            }
+        }
+    }
+
+    quantityInputs.forEach(function(input) {
+        input.addEventListener('input', function() {
+            updateTotalPrice();
+        });
+    });
+
+    updateTotalPrice();
+});
+
+</script>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}  {% endblock %}
+
+{% block body %}
+<style media="screen">
+  .sidebar {
+      height: 100%;
+      width: 200px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background-color: #111;
+      overflow-x: hidden;
+      padding-top: 20px;
+  }
+
+  .sidebar a {
+      padding: 10px 15px;
+      text-decoration: none; /* Remove underline */
+      font-size: 16px;
+      color: white;
+      display: block;
+  }
+
+  .sidebar a:hover {
+      background-color: #f8efef;
+      text-decoration: none; /* Remove underline on hover */
+  }
+
+  .content {
+      margin-left: 200px;
+      padding: 20px;
+  }
+
+  .content h3 {
+      color: #fff;
+  }
+
+  .sidebar img {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+  }
+</style>
+
+<div class="sidebar" style="background-color: rgb(57,99,147);">
+    <a href="{{ url_for('admin_dashboard') }}">
+        <h4>Hello, {{ current_user.username}}</h4>
+    </a>
+    <br>
+    <br>
+    <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-clipboard"></i> Dashboard
+    </a>
+    <a href="{{ url_for('stockin') }}"><i class="fa-solid fa-warehouse"></i> Stock In
+    </a>
+    <a href="{{ url_for('supplier') }}"><i class="fa-solid fa-building"></i> Suppliers
+    </a>
+    <a href="{{ url_for('category') }}"><i class="fa-solid fa-table-cells-large"></i> Categories
+    </a>
+    <a href="{{ url_for('customer') }}"><i class="fa-solid fa-person"></i> Customers
+    </a>
+    <a href="{{ url_for('users') }}"><i class="fa-solid fa-user-plus"></i> Users
+    </a>
+    <a href="{{ url_for('sales_report') }}"><i class="fa-solid fa-cash-register"></i> Sales
+    </a>
+    <br>
+    <br>
+    <a href="" data-toggle="modal" data-target="#logoutConfirmationModal">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </a>
+</div>
+
+  <!-- Logout Confirmation Modal -->
+  <div class="modal fade" id="logoutConfirmationModal" tabindex="-1" role="dialog" 
+    aria-labelledby="logoutConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logoutConfirmationModalLabel">Confirm Logout</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to logout?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <a href="{{ url_for('logout') }}" class="btn btn-primary">Logout</a>
+            </div>
+        </div>
+    </div>
+  </div>
+
+{% endblock %}

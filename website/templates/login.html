@@ -1,0 +1,148 @@
+{% extends 'admin_base.html' %}
+ 
+{% block title %} Login {% endblock %}
+
+{% block head %}  
+
+{% endblock %}
+
+{% block body %}
+<style media="screen">
+    *,
+    *:before,
+    *:after {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background-color: skyblue;
+        font-family: 'Poppins', sans-serif;
+        color: #ffffff;
+        text-align: center;
+        padding: 100px;
+        font-family:sans-serif;
+    }
+
+    h1 {
+    font-size: 100px; /* Larger font size for h1 elements */
+}
+    .background {
+        width: 100%;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: -1;
+    }
+
+    .shape {
+        position: absolute;
+        border-radius: 50%;
+    }
+
+    .shape:first-child {
+        background: radial-gradient(circle at 20% 50%, #1845ad, #23a2f6);
+        width: 200px;
+        height: 200px;
+        top: 20%;
+        left: -10%;
+    }
+
+    .shape:last-child {
+        background: linear-gradient(to right, #ff512f, #f09819);
+        width: 300px;
+        height: 300px;
+        bottom: -10%;
+        right: -10%;
+    }
+
+    form {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(255, 255, 255, 0.13);
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 40px rgba(8, 7, 16, 0.6);
+        padding: 50px;
+        max-width: 400px;
+        width: 90%;
+    }
+
+    form h3 {
+        font-size: 32px;
+        font-weight: 500;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    label {
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    input {
+        height: 50px;
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.07);
+        border-radius: 3px;
+        padding: 0 15px;
+        margin-top: 8px;
+        font-size: 14px;
+        font-weight: 300;
+        color: #fff;
+        border: 1px solid transparent;
+    }
+
+    input:focus {
+        border-color: #23a2f6;
+    }
+
+    ::placeholder {
+        color: #e5e5e5;
+    }
+
+    button {
+        margin-top: 30px;
+        width: 100%;
+        background-color: #ffffff;
+        color: #080710;
+        padding: 15px 0;
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 5px;
+        cursor: pointer;
+        border: none;
+        transition: background-color 0.3s ease;
+    }
+    button:hover {
+        background-color: #f0f0f0;
+    }
+</style>
+
+<div class="background">
+    <div class="shape"></div>
+    <p><h1> Pharmacy POS</h1></p>
+    <div class="shape"></div>
+</div>
+<form id="loginForm" method="POST">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        <label for="username">Username</label>
+        {{ form.username(class="form-control", id="username") }}
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        {{ form.password(class="form-control", id="password") }}
+    </div>
+    <div class="form-group">
+        {{ form.submit(class="btn btn-primary btn-block") }}
+    </div>
+</form>
+{% endblock %}

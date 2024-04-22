@@ -1,0 +1,71 @@
+{% extends 'admin_base.html' %}
+{% include 'admin_header.html' %}
+
+{% block title %}  {% endblock %}
+
+{% block body %}
+<div class="content">
+    <div class="row">
+        <div class="col-md-6">
+            <h2 style="font-weight: bold;">CUSTOMER LIST</h2>
+        </div>
+        <div class="col-md-6">
+            <input id="searchInput" type="text" placeholder="Search for customer name..." class="form-control">
+        </div>
+    </div>
+    
+    <div style="height: 550px; overflow-y: auto;">
+        <table class="table sticky-header table-striped table-sm">
+            <caption>LIST OF CUSTOMERS</caption>
+            <thead class="thead-dark">
+                <tr>
+                    <th>Firstname</th>
+                    <th>Lastname</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>Email</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="customerTableBody">
+                {% for row in customer %}
+                <tr>
+                    <td>{{row.firstname}}</td>
+                    <td>{{row.lastname}}</td>
+                    <td>{{row.phone}}</td>
+                    <td>{{row.address}}</td>
+                    <td>{{row.email}}</td>
+                    <td>
+                        <a type="button" class="btn btn-secondary btn-xs" href="{{ url_for('order_history', id=row.id) }}">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.getElementById("searchInput").addEventListener("keyup", function() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("searchInput");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("customerTableBody");
+        tr = table.getElementsByTagName("tr");
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[0]; // Change index if you want to search in other columns
+            if (td) {
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock %}

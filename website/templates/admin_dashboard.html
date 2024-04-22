@@ -1,0 +1,102 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}  {% endblock %}
+
+{% block body %}
+<style media="screen">
+    *,
+    *:before,
+    *:after {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+    }
+
+    form {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(148, 211, 253, 0.767);
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 40px rgba(8, 7, 16, 0.6);
+        padding: 20px;
+        max-width: 2000px;
+        
+      
+        
+    }
+    
+    body {
+        background-color: rgb(57,99,147);
+        font-family: 'Poppins', sans-serif;
+        color: #ffffff;
+
+        font-family:sans-serif; 
+   
+    }
+    .form-container {
+            display:flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+            
+           
+
+        .image-container {
+            display: flex;
+            flex-direction: row;
+         
+            
+          
+        }
+        img {
+            width: 100px; /* Adjust the width of the image as needed */
+            height: auto; /* Maintain the aspect ratio */
+            cursor: pointer;
+            margin-right: 20px;
+        }
+        figcaption {
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+    }
+
+</style>
+<div class="content">
+    <div class="form-container">
+        <h1>Pharmacy POS</h1>
+        <h4>Hello, {{ current_user.username }}</h4>
+        <form action="submit_form.php" method="post">
+            <div class="image-container">
+                <figure>
+                    <a href="{{url_for('stockin')}}"><img src="/static/staticImages/stockIn.png" alt="Click me 2"></a>
+                    <figcaption>STOCK-IN</figcaption>
+                </figure>
+                <figure>
+                    <a href="{{url_for('supplier')}}"><img src="/static/staticImages/suppliers.png" alt="Click me 4"></a>
+                    <figcaption>SUPPLIER</figcaption>
+                </figure>
+                <figure>
+                    <a href="{{url_for('category')}}"><img src="/static/staticImages/category.png" alt="Click me 4"></a>
+                    <figcaption>CATEGORY</figcaption>
+                </figure>
+                <figure>
+                    <a href="{{url_for('customer')}}"><img src="/static/staticImages/customers.png" alt="Click me 7"></a>
+                    <figcaption>CUSTOMER</figcaption>
+                </figure>
+                <figure>
+                    <a href="{{url_for('users')}}"><img src="/static/staticImages/user.png" alt="Click me 5"></a>
+                    <figcaption>USERS</figcaption>
+                </figure>
+                <figure>
+                    <a href="{{url_for('sales_report')}}"><img src="/static/staticImages/sales.png" alt="Click me 5"></a>
+                    <figcaption>SALES</figcaption>
+                </figure>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

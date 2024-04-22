@@ -1,0 +1,422 @@
+{% extends 'admin_base.html' %}
+{% include 'admin_header.html' %}
+
+{% block title %}  {% endblock %}
+
+{% block body %}
+<style>
+    /* Sticky header style */
+    .sticky-header thead {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background-color: #333;
+    }
+
+</style>
+
+<div class="content">
+    <div class="row mx-auto align-items-center">
+        <div class="col-md-3">
+            <h2 style="font-weight: bold;">STOCK-IN</h2>
+        </div>
+        <div class="col-md-3">
+            <div class="d-flex justify-content-center">
+                <input type="text" id="searchBar" class="form-control" placeholder="Search item name here">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="d-flex justify-content-center">
+                <select id="categoryFilter" class="form-control">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.name }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div> 
+        <div class="col-md-3 px-2">
+            <a href="{{ url_for('item_archives') }}" class="btn btn-danger">View Archived Items</a>
+            <div class="float-right"> <!-- Adjusted column size to col-md-3 -->
+                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#mymodal">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    
+    
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+
+    <div class="alert alert-success alert-dismissable" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="close">
+            <span aria-hidden="true">x</span>
+        </button>
+    {{message}}
+    </div>
+
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div style="height: 490px; overflow-y: auto; ">
+        <table class="table sticky-header table-striped table-sm">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th class="table-info">Actions</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% if items %}
+                {% for row in items %}
+                <tr class="item-row" data-name="{{ row.name | lower }}" data-category="{{ row.category | lower }}">
+                    <td>
+                        <img src="{{ url_for('serve_uploaded_image', filename=row.image_path) }}" alt="Item Image" style="width: 100px; height: 100px;">
+                    </td>
+                    <td>{{row.name}}</td>
+                    <td>{{row.category}}</td>
+                    <td >{{row.quantity}}</td>
+                    <td>{{row.price}}</td>
+                    <td>
+                        <button href="/updateItem/{{row.id}}" type="button" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modaledit{{row.id}}">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                    </td>
+                    <td>
+                        <form id="archiveForm{{row.id}}" action="{{ url_for('inactiveItem', id=row.id) }}" method="POST" onsubmit="return confirmArchive(event)">
+                            <button type="submit" class="btn btn-danger btn-xs">
+                                <i class="fa-solid fa-box-archive"></i>
+                            </button>
+                        </form>
+                    </td>
+                    <td>
+                        <a type="button" class="btn btn-secondary btn-xs" style="float: right;" href="{{ url_for('item_history', id=row.id) }}">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+
+                <!-- MODAL TO UPDATE PRICE ITEM -->
+                <div id="modaledit{{row.id}}" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title">Update Information:</h4>
+                            </div>
+                            <div class="modal-body">
+                                <form id="updateForm{{row.id}}" action="{{url_for('updateItem',id=row.id)}}" method="POST">
+                                    <div class="form-group">
+                                        <label>New Price:</label>
+                                        <input type="hidden"  name="id" value="{{row.id}}">
+                                        <input type="number" class="form-control" value="{{row.price}}" name="new_price" id="new_price_input" required min="1">
+                                    </div>
+                                    <div class="form-group">
+                                        <button id="updateBtn{{row.id}}" class="btn btn-success" type="button">
+                                            <i class="fa-solid fa-pen"></i> Update
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                    <i class="fa-solid fa-xmark"></i> Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONFIRMATION MODAL TO UPDATE ITEM PRICE -->
+                <div id="confirmationModal{{row.id}}" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title">Confirmation</h4>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure you want to update this information?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="confirmUpdateBtn{{row.id}}" type="button" class="btn btn-success">Yes</button>
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">No</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.getElementById('updateBtn{{row.id}}').addEventListener('click', function() {
+                            $('#confirmationModal{{row.id}}').modal('show');
+                        });
+
+                        document.getElementById('confirmUpdateBtn{{row.id}}').addEventListener('click', function() {
+                            document.getElementById('updateForm{{row.id}}').submit();
+                        });
+                    });
+                </script>
+                <!--------------------------------------------------------------->
+
+                
+
+                <!---------------------- MODAL ADD ITEM ------------------------->
+                <div id="mymodal" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title">Add Item</h4>
+                            </div>
+                            <div class="modal-body">
+                                <form id="addItemForm" action="{{url_for('insertItem')}}" method="POST" enctype="multipart/form-data">
+                                    <div class="form-group">
+                                        <label>Image:</label>
+                                        <input type="file" class="form-control-file" name="image" accept="image/*">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Name:</label>
+                                        <input type="text" class="form-control" name="name" required="1">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="category">Supplier:</label>
+                                            <select class="form-control" id="supplier" name="supplier" required>
+                                                <option value="">Select a supplier...</option>
+                                                {% for row in supplier %}
+                                                    <option value="{{row.name}}">{{row.name}}</option>
+                                                {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="category">Category:</label>
+                                            <select class="form-control" id="category" name="category" required>
+                                                <option value="">Select a category...</option>
+                                                {% for row in category %}
+                                                    <option value="{{row.name}}">{{row.name}}</option>
+                                                {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Quantity:</label>
+                                        <input type="quantity" class="form-control" name="quantity" required="1">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Price:</label>
+                                        <input type="price" class="form-control" name="price" required="1">
+                                    </div>
+                                    <div class="form-group">
+                                        <button id="showConfirmationModalBtn" class="btn btn-success" type="button">Confirm</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confirmation Modal for Adding Items -->
+                <div id="confirmationModalAddItem" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title">Confirmation</h4>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure you want to add this item?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="confirmAddItemBtn" type="button" class="btn btn-success">Yes</button>
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">No</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.getElementById('showConfirmationModalBtn').addEventListener('click', function() {
+                            $('#confirmationModalAddItem').modal('show');
+                        });
+                        document.getElementById('confirmAddItemBtn').addEventListener('click', function() {
+                            document.getElementById('addItemForm').submit();
+                        });
+                    });
+                </script>
+                <!--------------------------------------------------------------->
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="8">No item is inserted.</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="mymodal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Add Item</h4>
+            </div>
+            <div class="modal-body">
+                <form id="addItemForm" action="{{url_for('insertItem')}}" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Image:</label>
+                        <input type="file" class="form-control" name="image" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label>Name:</label>
+                        <input type="text" class="form-control" name="name" required="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Supplier:</label>
+                            <select class="form-control" id="supplier" name="supplier" required>
+                                <option value="">Select a supplier...</option>
+                                {% for row in supplier %}
+                                    <option value="{{row.name}}">{{row.name}}</option>
+                                {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Category:</label>
+                            <select class="form-control" id="category" name="category" required>
+                                <option value="">Select a category...</option>
+                                {% for row in category %}
+                                    <option value="{{row.name}}">{{row.name}}</option>
+                                {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity:</label>
+                        <input type="quantity" class="form-control" name="quantity" required="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Price:</label>
+                        <input type="price" class="form-control" name="price" required="1">
+                    </div>
+                    <div class="form-group">
+                        <button id="showConfirmationModalBtn" class="btn btn-success" type="button">
+                            <i class="fa-solid fa-plus"></i> Add New
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">
+                    <i class="fa-solid fa-xmark"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal for Adding Items -->
+<div id="confirmationModalAddItem" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Confirmation</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to add this item?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">No</button>
+                <button id="confirmAddItemBtn" type="button" class="btn btn-success">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('showConfirmationModalBtn').addEventListener('click', function() {
+            $('#confirmationModalAddItem').modal('show');
+        });
+        document.getElementById('confirmAddItemBtn').addEventListener('click', function() {
+            document.getElementById('addItemForm').submit();
+        });
+    });
+</script>
+<!--------------------------------------------------------------->
+
+ <!-- View History-->
+ <div id="viewHistory" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Item Stock-In History</h4>
+            </div>
+            <div style="height: 450px; overflow-y: auto; ">
+                <table class="table sticky-header table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Supplier</th>
+                            <th>Quantity</th>
+                            <th>Stock-In Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in history %}
+                        <tr>
+                            <td>{{ row.supplier }}</td>
+                            <td>{{ row.quantity_added }}</td>
+                            <td>{{ row.stock_in_date }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fa-solid fa-xmark"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- View History Ends Ends-->
+
+<!-- SCRIPT FOR SEARCH BAR -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchBar = document.getElementById('searchBar');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const itemRows = document.querySelectorAll('.item-row');
+
+        searchBar.addEventListener('input', filterItems);
+        categoryFilter.addEventListener('change', filterItems);
+
+        function filterItems() {
+            const searchText = searchBar.value.toLowerCase();
+            const selectedCategory = categoryFilter.value.toLowerCase();
+
+            itemRows.forEach(function(row) {
+                const itemName = row.getAttribute('data-name');
+                const itemCategory = row.getAttribute('data-category');
+
+                const matchesSearch = itemName.includes(searchText) || searchText === '';
+                const matchesCategory = itemCategory === selectedCategory || selectedCategory === '';
+
+                if (matchesSearch && matchesCategory) {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

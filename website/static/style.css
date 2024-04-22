@@ -1,0 +1,54 @@
+@media screen {
+    *,
+    *:before,
+    *:after {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+    }
+
+    form {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(148, 211, 253, 0.767);
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 40px rgba(8, 7, 16, 0.6);
+        padding: 20px;
+        max-width: 2000px;
+    }
+
+    body {
+        background-color: skyblue;
+        font-family: 'Poppins', sans-serif;
+        color: #ffffff;
+        font-family: sans-serif;
+    }
+
+    .form-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 50px;
+    }
+
+    .image-container {
+        display: flex;
+        flex-direction: row;
+    }
+
+    img {
+        width: 100px; /* Adjust the width of the image as needed */
+        height: auto; /* Maintain the aspect ratio */
+        cursor: pointer;
+        margin-right: 20px;
+    }
+
+    figcaption {
+        margin-top: 10px;
+        padding-left: 20px;
+    }
+}

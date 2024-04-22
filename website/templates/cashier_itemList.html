@@ -1,0 +1,144 @@
+{% extends 'admin_base.html' %}
+{% include 'cashier_header.html' %}
+
+{% block title %}Item List{% endblock %}
+
+{% block body %}
+<style>
+    .sticky-header thead {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background-color: #f8f9fa;
+    }
+    
+    .content {
+      position: absolute;
+      top: 0;
+      width: calc(100% - 200px);
+      height: 100%;
+      background-color: rgb(242,242,242);
+      padding: 20px;
+      box-sizing: border-box;
+  }
+  .container{
+    background-color: rgb(242,242,242);
+  }
+
+  .btn-add-to-cart {
+        background-color: #ffc107;
+        color: #fff;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 5px;
+        font-size: 14px;
+        cursor: pointer;
+        width: 100%; /* Adjust the width to cover up the space */
+        transition: all 0.3s ease; /* Smooth transition on hover */
+    }
+
+    .btn-add-to-cart:hover {
+        background-color: #ff9800; /* Change color on hover */
+    }
+    .bold-text {
+    font-weight: bold;
+}
+</style>
+<div class="content">
+    <div class="row sticky-top">
+        <div class="row">
+            <div class="col-md-3">
+                <h4><strong>Order Now!</strong></h4>
+            </div>            
+            <div class="col-md-3">
+                <input type="text" id="searchBar" class="form-control" placeholder="Search item name here">
+            </div>
+            <div class="col-md-3">
+                <select id="categoryFilter" class="form-control">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.name }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>        
+            <div class="col-md-3">
+                <a class="btn btn-danger btn-sm" href="{{ url_for('cart') }}" style="float: right;">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                </a>
+            </div>
+        </div>        
+    </div>
+    <br>
+    
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+
+    <div class="alert alert-success alert-dismissable" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="close">
+            <span aria-hidden="true">x</span>
+        </button>
+    {{message}}
+    </div>
+
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <div class="container" id="itemContainer">
+        <div class="row">
+            {% for row in items %}
+            <div class="col-md-3 mb-3 item-card" data-name="{{ row.name }}" data-category="{{ row.category }}">
+                <div class="card border-success" style="max-width: 15rem;">
+                    <div class="card-header bg-transparent border-success text-center bold-text">{{ row.name }}</div>
+                    <img src="{{ url_for('serve_uploaded_image', filename=row.image_path) }}" class="card-img-top" alt="Item Image" style="max-height: 150px;">
+                    <div class="card-body text-success">
+                        <p class="card-text text-center">{{ row.category }}</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-success">
+                        <p class="text-center"><strong>Qty:</strong> {{ row.quantity }} | <strong>Price:</strong> {{ row.price }}</p>
+                        {% if row.quantity > 0 %}
+                        <form action="{{ url_for('addToCart', item_id=row.id) }}" method="POST">
+                            <button type="submit" class="btn btn-warning btn-sm btn-add-to-cart">Add to Cart</button>
+                        </form>
+                        {% else %}
+                        <button class="btn btn-warning btn-sm btn-add-to-cart" disabled>Add to Cart</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<!------------- FOR SEARCH BY ITEM NAME ---------------->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchBar = document.getElementById('searchBar');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const itemCards = document.querySelectorAll('.item-card');
+
+        searchBar.addEventListener('input', filterItems);
+        categoryFilter.addEventListener('change', filterItems);
+
+        function filterItems() {
+            const searchText = searchBar.value.toLowerCase();
+            const selectedCategory = categoryFilter.value.toLowerCase();
+
+            itemCards.forEach(function(card) {
+                const itemName = card.dataset.name.toLowerCase();
+                const itemCategory = card.dataset.category.toLowerCase();
+
+                const matchesSearch = itemName.includes(searchText) || searchText === '';
+                const matchesCategory = itemCategory === selectedCategory || selectedCategory === '';
+
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
+<!------------------ ENDS HERE ------------------->
+{% endblock %}

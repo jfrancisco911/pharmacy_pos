@@ -1,0 +1,64 @@
+{% extends 'admin_base.html' %}
+{% include 'admin_header.html' %}
+
+{% block title %}List of Archived Items{% endblock %}
+
+{% block body %}
+<div class="content">
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+
+    <div class="alert alert-success alert-dismissable" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="close">
+            <span aria-hidden="true">x</span>
+        </button>
+    {{message}}
+    </div>
+
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <table class="table sticky-header table-striped table-sm">
+        <thead class="thead-dark">
+            <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th class="table-info">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if inactive_items %}
+                {% for item in inactive_items %}
+                <tr>
+                    <td>
+                        <img src="{{ url_for('serve_uploaded_image', filename=item.image_path) }}" alt="Item Image" style="max-width: 100px;">
+                    </td>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.category }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.price }}</td>
+                    <td>
+                        <!-- Add actions for the inactive item -->
+                        <form id="activateForm{{ item.id }}" action="{{ url_for('activateItem', id=item.id) }}" method="POST">
+                            <button type="submit" class="btn btn-success btn-xs">
+                                Activate
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6">No item is inactive.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

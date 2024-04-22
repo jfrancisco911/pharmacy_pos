@@ -1,0 +1,35 @@
+{% extends 'admin_base.html' %}
+{% include 'admin_header.html' %}
+
+{% block title %}Order Details{% endblock %}
+
+{% block body %}
+<div class="content">
+                    <h2>ORDER DETAILS FOR {{ customer.firstname }} {{ customer.lastname }} | ORDER ID: {{ order.id }}
+                    </h2>
+                    <table class="table table-striped">
+                        <caption>LIST OF ORDER DETAILS</caption>
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Items</th>
+                                <th>Base Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in history %}
+                            <tr>
+                                <td>{{ item.item.name }}</td>
+                                <td>{{ item.price }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.quantity * item.price }}</td>
+                                <td>{{ item.order_date }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                
+</div>
+{% endblock %}
